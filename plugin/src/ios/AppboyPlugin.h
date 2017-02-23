@@ -3,6 +3,8 @@
 @interface AppboyPlugin : CDVPlugin <UIAlertViewDelegate> {}
 
 /*-------Appboy.h-------*/
+
+- (void) registerAppboyPushMessages:(CDVInvokedUrlCommand *)command;
 - (void) changeUser:(CDVInvokedUrlCommand *)command;
 - (void) submitFeedback:(CDVInvokedUrlCommand *)command;
 - (void) logCustomEvent:(CDVInvokedUrlCommand *)command;

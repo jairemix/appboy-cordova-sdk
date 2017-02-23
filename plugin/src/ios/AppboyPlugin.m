@@ -10,47 +10,73 @@
 @end
 
 @implementation AppboyPlugin
+
 - (void)pluginInitialize {
   NSDictionary *settings = self.commandDelegate.settings;
   self.APIKey = settings[@"com.appboy.api_key"];
   self.disableAutomaticPushRegistration = settings[@"com.appboy.ios_disable_automatic_push_registration"];
   self.disableAutomaticPushHandling = settings[@"com.appboy.ios_disable_automatic_push_handling"];
+  NSLog(@"[Jerem] ⭐️ self.disableAutomaticPushRegistration %@", self.disableAutomaticPushRegistration);
+  NSLog(@"[Jerem] ⭐️ self.disableAutomaticPushHandling %@", self.disableAutomaticPushHandling);
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
-    [AppDelegate swizzleHostAppDelegate];
+    NSLog(@"[Jerem] ⭐️ did not disable automatic push handling");
+    [self setUpPushHandling];
   }
+  NSLog(@"[Jerem] ⭐️ end pluginInitialize");
 }
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
+
   [Appboy startWithApiKey:self.APIKey
             inApplication:notification.object
         withLaunchOptions:notification.userInfo
         withAppboyOptions:nil];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
-    UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
-    if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_9_x_Max) {
-      UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-      // If the delegate hasn't been set yet, set it here in the plugin
-      if (center.delegate == nil) {
-        center.delegate = [UIApplication sharedApplication].delegate;
-      }
-      [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
-                            completionHandler:^(BOOL granted, NSError * _Nullable error) {
-                              NSLog(@"Permission granted.");
-      }];
-      [[UIApplication sharedApplication] registerForRemoteNotifications];
-    } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
-      UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationSettingTypes categories:nil];
-      [[UIApplication sharedApplication] registerForRemoteNotifications];
-      [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-    } else {
-      [[UIApplication sharedApplication] registerForRemoteNotificationTypes: notificationSettingTypes];
-    }
+    NSLog(@"[Jerem] ⭐️ did not disable automatic push registration");
+    [self setUpPushRegistration];
   }
 }
 
+- (void)setUpPushHandling {
+  NSLog(@"[Jerem] 💙 push handling set up");
+  [AppDelegate swizzleHostAppDelegate];
+}
+
+- (void)setUpPushRegistration {
+  NSLog(@"[Jerem] 💙 push registration set up");
+  UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
+  if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_9_x_Max) {
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    // If the delegate hasn't been set yet, set it here in the plugin
+    if (center.delegate == nil) {
+      center.delegate = [UIApplication sharedApplication].delegate;
+    }
+    [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
+                          completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                            NSLog(@"Permission granted.");
+    }];
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+  } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
+    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationSettingTypes categories:nil];
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+    [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+  } else {
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes: notificationSettingTypes];
+  }
+}
+
+
+
 /*-------Appboy.h-------*/
+
+- (void)registerAppboyPushMessages:(CDVInvokedUrlCommand *)command {
+  NSLog(@"[Jerem] ⭐️ register AppboyPushMessages DISABLED");
+  // [self setUpPushHandling];
+  // [self setUpPushRegistration];
+}
+
 - (void)changeUser:(CDVInvokedUrlCommand *)command
 {
   NSString *userId = [command argumentAtIndex:0 withDefault:nil];
@@ -108,7 +134,7 @@
   NSInteger year = [[command argumentAtIndex:0 withDefault:@0] integerValue];
   NSInteger month = [[command argumentAtIndex:1 withDefault:@0] integerValue];
   NSInteger day = [[command argumentAtIndex:2 withDefault:@0] integerValue];
-  
+
   if (month <= 12 && month > 0 && day <= 31 && day > 0) {
     NSCalendar *calendar = [NSCalendar currentCalendar];
     NSDateComponents *components = [[NSDateComponents alloc] init];
@@ -264,24 +290,24 @@
 /*-------News Feed-------*/
 - (void) getCardCountForCategories:(CDVInvokedUrlCommand *)command {
   int categoryMask = [self getCardCategoryMaskWithStringArray:command.arguments];
-  
+
   if (categoryMask == 0) {
     [self sendCordovaErrorPluginResultWithString:@"Category could not be set." andCommand:command];
     return;
   }
-  
+
   NSInteger cardCount = [[Appboy sharedInstance].feedController cardCountForCategories:categoryMask];
   [self sendCordovaSuccessPluginResultWithInt:cardCount andCommand:command];
 }
 
 - (void) getUnreadCardCountForCategories:(CDVInvokedUrlCommand *)command {
   int categoryMask = [self getCardCategoryMaskWithStringArray:command.arguments];
-  
+
   if (categoryMask == 0) {
     [self sendCordovaErrorPluginResultWithString:@"Category could not be set." andCommand:command];
     return;
   }
-  
+
   NSInteger unreadCardCount = [[Appboy sharedInstance].feedController unreadCardCountForCategories:categoryMask];
   [self sendCordovaSuccessPluginResultWithInt:unreadCardCount andCommand:command];
 }
