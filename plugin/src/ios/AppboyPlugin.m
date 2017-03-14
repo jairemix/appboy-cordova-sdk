@@ -72,9 +72,9 @@
 /*-------Appboy.h-------*/
 
 - (void)registerAppboyPushMessages:(CDVInvokedUrlCommand *)command {
-  NSLog(@"[Jerem] ⭐️ register AppboyPushMessages DISABLED");
-  // [self setUpPushHandling];
-  // [self setUpPushRegistration];
+  // NSLog(@"[Jerem] ⭐️ register AppboyPushMessages DISABLED");
+  [self setUpPushHandling];
+  [self setUpPushRegistration];
 }
 
 - (void)changeUser:(CDVInvokedUrlCommand *)command
