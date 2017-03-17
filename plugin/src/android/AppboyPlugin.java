@@ -61,18 +61,18 @@ public class AppboyPlugin extends CordovaPlugin {
   protected void refreshFBToken () {
     try {
       if (!this.mPushAuthorized) {
-        Log.v("Jerem", "push unauthorized");
+        Log.v(TAG, "push unauthorized");
         return;
       }
-      Log.v("Jerem", "getting token");
-//      Log.v("Jerem", "initialising firebase app");
+      Log.v(TAG, "getting token");
+//      Log.v(TAG, "initialising firebase app");
 //      FirebaseApp.initializeApp(mApplicationContext);
       String token = FirebaseInstanceId.getInstance().getToken();
-      Log.v("Jerem", "firebase token: " + token);
+      Log.v(TAG, "firebase token: " + token);
       Appboy.getInstance(this.mApplicationContext).registerAppboyPushMessages(FirebaseInstanceId.getInstance().getToken());
     }
     catch (Exception ex) {
-      Log.e("Jerem", "exception caught: " + ex.getMessage());
+      Log.e(TAG, "exception caught: " + ex.getMessage());
     }
   }
 
@@ -81,12 +81,12 @@ public class AppboyPlugin extends CordovaPlugin {
    */
   private void unregisterAppboyPushMessages () {
     try {
-      Log.v("Jerem", "unregistering push");
+      Log.v(TAG, "unregistering push");
       this.mPushAuthorized = false;
       Appboy.getInstance(mApplicationContext).unregisterAppboyPushMessages();
     }
     catch (Exception ex) {
-      Log.e("Jerem", "exception caught: " + ex.getMessage());
+      Log.e(TAG, "exception caught: " + ex.getMessage());
     }
   }
 

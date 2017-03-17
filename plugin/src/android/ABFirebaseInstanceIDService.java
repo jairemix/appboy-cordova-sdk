@@ -8,7 +8,7 @@ import com.google.firebase.iid.FirebaseInstanceIdService;
  * Created by jeremy on 16/03/2017.
  */
 public class ABFirebaseInstanceIDService extends FirebaseInstanceIdService {
-  public static final String Tag = "Appboy";
+  public static final String TAG = "Appboy";
   @Override
   /**
    * Called if InstanceID token is updated. This may occur if the security of
@@ -18,12 +18,12 @@ public class ABFirebaseInstanceIDService extends FirebaseInstanceIdService {
    * so a check might be necessary to verify if the user has allowed the push
    */
   public void onTokenRefresh () {
-    Log.v("Jerem", "token just refreshed");
+    Log.v(TAG, "token just refreshed");
     try {
       AppboyPlugin.getInstance().refreshFBToken();
     }
     catch (Exception ex) {
-      Log.e("Jerem", "exception caught: " + ex.getMessage());
+      Log.e(TAG, "exception caught: " + ex.getMessage());
     }
   }
 }

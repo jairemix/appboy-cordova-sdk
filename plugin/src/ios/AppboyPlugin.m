@@ -16,14 +16,14 @@
   self.APIKey = settings[@"com.appboy.api_key"];
   self.disableAutomaticPushRegistration = settings[@"com.appboy.ios_disable_automatic_push_registration"];
   self.disableAutomaticPushHandling = settings[@"com.appboy.ios_disable_automatic_push_handling"];
-  NSLog(@"[Jerem] ⭐️ self.disableAutomaticPushRegistration %@", self.disableAutomaticPushRegistration);
-  NSLog(@"[Jerem] ⭐️ self.disableAutomaticPushHandling %@", self.disableAutomaticPushHandling);
+  NSLog(@"[Appboy] self.disableAutomaticPushRegistration %@", self.disableAutomaticPushRegistration);
+  NSLog(@"[Appboy] self.disableAutomaticPushHandling %@", self.disableAutomaticPushHandling);
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
-    NSLog(@"[Jerem] ⭐️ did not disable automatic push handling");
+    NSLog(@"[Appboy] did not disable automatic push handling");
     [self setUpPushHandling];
   }
-  NSLog(@"[Jerem] ⭐️ end pluginInitialize");
+  NSLog(@"[Appboy] end pluginInitialize");
 }
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
@@ -34,18 +34,18 @@
         withAppboyOptions:nil];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
-    NSLog(@"[Jerem] ⭐️ did not disable automatic push registration");
+    NSLog(@"[Appboy] did not disable automatic push registration");
     [self setUpPushRegistration];
   }
 }
 
 - (void)setUpPushHandling {
-  NSLog(@"[Jerem] 💙 push handling set up");
+  NSLog(@"[Appboy] push handling set up");
   [AppDelegate swizzleHostAppDelegate];
 }
 
 - (void)setUpPushRegistration {
-  NSLog(@"[Jerem] 💙 push registration set up");
+  NSLog(@"[Appboy] push registration set up");
   UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
   if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_9_x_Max) {
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
@@ -72,7 +72,7 @@
 /*-------Appboy.h-------*/
 
 - (void)registerAppboyPushMessages:(CDVInvokedUrlCommand *)command {
-  // NSLog(@"[Jerem] ⭐️ register AppboyPushMessages DISABLED");
+  // NSLog(@"[Appboy] register AppboyPushMessages DISABLED");
   [self setUpPushHandling];
   [self setUpPushRegistration];
 }
