@@ -40,18 +40,20 @@ AppboyPlugin.prototype.changeUser = function (userId) {
 }
 
 /**
-* ** ANDROID ONLY**
-* 
-* Registers the device as eligible to receive push notifications from Appboy.
-* Appboy will use the provided For GCM/ADM applications, this takes the GCM/ADM registration ID to send the device GCM/ADM messages.
-* For apps integrating Baidu Cloud Push, this method is used to register the Baidu user with Appboy.
-* This should only be used if you already use GCM/ADM messaging in your app from another provider or are integrating Baidu Cloud Push.
 *
-* @param {string} registrationId - The registration ID, or for apps integrating Baidu Cloud Push, the Baidu user id.
+* Registers the device as eligible to receive push notifications from Appboy.
+* The plugin will automatically use fetch the FCM / APN token
 */
-AppboyPlugin.prototype.registerAppboyPushMessages = function (gcmRegistrationID) {
-	cordova.exec(null, null, "AppboyPlugin", "registerAppboyPushMessages", [gcmRegistrationID]);
+AppboyPlugin.prototype.registerAppboyPushMessages = function () {
+	cordova.exec(null, null, "AppboyPlugin", "registerAppboyPushMessages", []);
 }
+
+/**
+* Android only - still looking for solution on iOS
+*/
+AppboyPlugin.prototype.unregisterAppboyPushMessages = function () {
+	cordova.exec(null, null, "AppboyPlugin", "unregisterAppboyPushMessages", []);
+};
 
 /**
  * Reports that the current user performed a custom named event.
@@ -336,10 +338,10 @@ AppboyPlugin.prototype['Genders'] = {
 };
 
 AppboyPlugin.prototype['CardCategories'] = {
-  "ADVERTISING": 'advertising', 
-  "ANNOUNCEMENTS": 'announcements', 
-  "NEWS": 'news', 
-  "SOCIAL": 'social', 
+  "ADVERTISING": 'advertising',
+  "ANNOUNCEMENTS": 'announcements',
+  "NEWS": 'news',
+  "SOCIAL": 'social',
   "NO_CATEGORY": 'no_category',
   "ALL" : 'all'
 };

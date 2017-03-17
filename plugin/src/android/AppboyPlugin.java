@@ -27,15 +27,23 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.iid.FirebaseInstanceId;
+
 public class AppboyPlugin extends CordovaPlugin {
+  private static AppboyPlugin pluginInstance;
+
   private static final String TAG = String.format("Appboy.%s", AppboyPlugin.class.getName());
   private static final String GET_CARD_COUNT_FOR_CATEGORIES_METHOD = "getCardCountForCategories";
   private static final String GET_UNREAD_CARD_COUNT_FOR_CATEGORIES_METHOD = "getUnreadCardCountForCategories";
   private boolean mRefreshData;
   private Context mApplicationContext;
   private Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<String, IEventSubscriber<FeedUpdatedEvent>>();
+  private boolean mPushAuthorized;
 
   protected void pluginInitialize() {
+    AppboyPlugin.pluginInstance = this;
+
     mApplicationContext = this.cordova.getActivity().getApplicationContext();
     if (Appboy.getInstance(mApplicationContext).openSession(this.cordova.getActivity())) {
       mRefreshData = true;
@@ -47,11 +55,52 @@ public class AppboyPlugin extends CordovaPlugin {
     }
   }
 
+  /**
+   * Used on cordova.exec('registerAppboyPushMessages')
+   * and when Firebase refreshes the token (including upon installation)
+   */
+  protected void refreshFBToken () {
+    try {
+      if (!this.mPushAuthorized) {
+        Log.v("Jerem", "push unauthorized");
+        return;
+      }
+      Log.v("Jerem", "getting token");
+//      Log.v("Jerem", "initialising firebase app");
+//      FirebaseApp.initializeApp(mApplicationContext);
+      String token = FirebaseInstanceId.getInstance().getToken();
+      Log.v("Jerem", "firebase token: " + token);
+      Appboy.getInstance(this.mApplicationContext).registerAppboyPushMessages(FirebaseInstanceId.getInstance().getToken());
+    }
+    catch (Exception ex) {
+      Log.e("Jerem", "exception caught: " + ex.getMessage());
+    }
+  }
+
+  /**
+   * Used on cordova.exec('unregisterAppboyPushMessages')
+   */
+  private void unregisterAppboyPushMessages () {
+    try {
+      Log.v("Jerem", "unregistering push");
+      this.mPushAuthorized = false;
+      Appboy.getInstance(mApplicationContext).unregisterAppboyPushMessages();
+    }
+    catch (Exception ex) {
+      Log.e("Jerem", "exception caught: " + ex.getMessage());
+    }
+  }
+
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Log.i(TAG, "Received " + action + " with the following arguments: " + args);
     // Appboy methods
     if (action.equals("registerAppboyPushMessages")) {
-      Appboy.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
+//    Appboy.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0)); // works with GCM
+      this.mPushAuthorized = true;
+      this.refreshFBToken();
+      return true;
+    } else if (action.equals("unregisterAppboyPushMessages")) {
+      this.unregisterAppboyPushMessages();
       return true;
     } else if (action.equals("changeUser")) {
       Appboy.getInstance(mApplicationContext).changeUser(args.getString(0));
@@ -203,10 +252,10 @@ public class AppboyPlugin extends CordovaPlugin {
         @Override
         public void trigger(final FeedUpdatedEvent event) {
           // Each callback context is by default made to only be called once and is afterwards "finished". We want to ensure
-          // that we never try to call the same callback twice. This could happen since we don't know the ordering of the feed 
+          // that we never try to call the same callback twice. This could happen since we don't know the ordering of the feed
           // subscription callbacks from the cache.
           if (!callbackContext.isFinished()) {
-            callbackContext.success(event.getCardCount(categories));          
+            callbackContext.success(event.getCardCount(categories));
           }
 
           // Remove this listener from the map and from Appboy
@@ -250,10 +299,10 @@ public class AppboyPlugin extends CordovaPlugin {
 
     for (int i = 0; i < jsonArray.length(); i++){
       String category = jsonArray.getString(i);
-      
+
       CardCategory categoryArgument;
       if (category.equals("all")) {
-        // "All categories" maps to a enumset and not a specific enum so we have to return that here 
+        // "All categories" maps to a enumset and not a specific enum so we have to return that here
         return CardCategory.getAllCategories();
       } else {
        categoryArgument = CardCategory.get(category);
@@ -339,4 +388,11 @@ public class AppboyPlugin extends CordovaPlugin {
     super.onStop();
     Appboy.getInstance(mApplicationContext).closeSession(this.cordova.getActivity());
   }
+
+  /** Static **/
+
+  protected static AppboyPlugin getInstance () {
+    return AppboyPlugin.pluginInstance;
+  }
+
 }
