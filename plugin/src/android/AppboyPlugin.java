@@ -18,6 +18,7 @@ import com.appboy.ui.inappmessage.AppboyInAppMessageManager;
 import com.appboy.support.AppboyLogger;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,33 +62,58 @@ public class AppboyPlugin extends CordovaPlugin {
   protected void refreshFBToken () {
     try {
       if (!this.mPushAuthorized) {
-        Log.v(TAG, "push unauthorized");
+        Log.v("Jerem", "push unauthorized");
         return;
       }
-      Log.v(TAG, "getting token");
-//      Log.v(TAG, "initialising firebase app");
+      Log.v("Jerem", "getting token");
+//      Log.v("Jerem", "initialising firebase app");
 //      FirebaseApp.initializeApp(mApplicationContext);
       String token = FirebaseInstanceId.getInstance().getToken();
-      Log.v(TAG, "firebase token: " + token);
+      Log.v("Jerem", "firebase token: " + token);
       Appboy.getInstance(this.mApplicationContext).registerAppboyPushMessages(FirebaseInstanceId.getInstance().getToken());
     }
     catch (Exception ex) {
-      Log.e(TAG, "exception caught: " + ex.getMessage());
+      Log.e("Jerem", "exception caught: " + ex.getMessage());
     }
   }
 
   /**
    * Used on cordova.exec('unregisterAppboyPushMessages')
    */
-  private void unregisterAppboyPushMessages () {
+  private boolean unregisterAppboyPushMessages () {
     try {
-      Log.v(TAG, "unregistering push");
+      Log.v("Jerem", "unregistering push");
       this.mPushAuthorized = false;
       Appboy.getInstance(mApplicationContext).unregisterAppboyPushMessages();
+      return true;
     }
     catch (Exception ex) {
-      Log.e(TAG, "exception caught: " + ex.getMessage());
+      Log.e("Jerem", "exception caught: " + ex.getMessage());
+      return false;
     }
+  }
+
+  private boolean setPushNotificationSubscriptionType (JSONArray args, final CallbackContext callbackContext) throws JSONException {
+    String subscriptionType = args.getString(0);
+    boolean success = false;
+    if (subscriptionType.equals("opted_in")) {
+      success = Appboy.getInstance(mApplicationContext).getCurrentUser().setPushNotificationSubscriptionType(NotificationSubscriptionType.OPTED_IN);
+    } else if (subscriptionType.equals("subscribed")) {
+      success = Appboy.getInstance(mApplicationContext).getCurrentUser().setPushNotificationSubscriptionType(NotificationSubscriptionType.SUBSCRIBED);
+    } else if (subscriptionType.equals("unsubscribed")) {
+      success = Appboy.getInstance(mApplicationContext).getCurrentUser().setPushNotificationSubscriptionType(NotificationSubscriptionType.UNSUBSCRIBED);
+    }
+
+    if (success) {
+//      callbackContext.success("true");
+      callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, true));
+      return true;
+    }
+    else {
+      callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, false));
+      return false;
+    }
+
   }
 
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -99,8 +125,7 @@ public class AppboyPlugin extends CordovaPlugin {
       this.refreshFBToken();
       return true;
     } else if (action.equals("unregisterAppboyPushMessages")) {
-      this.unregisterAppboyPushMessages();
-      return true;
+      return this.unregisterAppboyPushMessages();
     } else if (action.equals("changeUser")) {
       Appboy.getInstance(mApplicationContext).changeUser(args.getString(0));
       return true;
@@ -199,15 +224,7 @@ public class AppboyPlugin extends CordovaPlugin {
       Appboy.getInstance(mApplicationContext).getCurrentUser().setAvatarImageUrl(args.getString(0));
       return true;
     } else if (action.equals("setPushNotificationSubscriptionType")) {
-      String subscriptionType = args.getString(0);
-      if (subscriptionType.equals("opted_in")) {
-        Appboy.getInstance(mApplicationContext).getCurrentUser().setPushNotificationSubscriptionType(NotificationSubscriptionType.OPTED_IN);
-      } else if (subscriptionType.equals("subscribed")) {
-        Appboy.getInstance(mApplicationContext).getCurrentUser().setPushNotificationSubscriptionType(NotificationSubscriptionType.SUBSCRIBED);
-      } else if (subscriptionType.equals("unsubscribed")) {
-        Appboy.getInstance(mApplicationContext).getCurrentUser().setPushNotificationSubscriptionType(NotificationSubscriptionType.UNSUBSCRIBED);
-      }
-      return true;
+      return this.setPushNotificationSubscriptionType(args, callbackContext);
     } else if (action.equals("setEmailNotificationSubscriptionType")) {
       String subscriptionType = args.getString(0);
       if (subscriptionType.equals("opted_in")) {

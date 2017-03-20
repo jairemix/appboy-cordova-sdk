@@ -41,7 +41,7 @@ AppboyPlugin.prototype.changeUser = function (userId) {
 
 /**
 * ** ANDROID ONLY**
-* 
+*
 * Registers the device as eligible to receive push notifications from Appboy.
 * Appboy will use the provided For GCM/ADM applications, this takes the GCM/ADM registration ID to send the device GCM/ADM messages.
 * For apps integrating Baidu Cloud Push, this method is used to register the Baidu user with Appboy.
@@ -235,8 +235,8 @@ AppboyPlugin.prototype.setDateOfBirth = function (year, month, day) {
  * @param {NotificationSubscriptionTypes} notificationSubscriptionType - Notification setting (explicitly
  *    opted-in, subscribed, or unsubscribed).
  */
-AppboyPlugin.prototype.setPushNotificationSubscriptionType = function (notificationSubscriptionType) {
-	cordova.exec(null, null, "AppboyPlugin", "setPushNotificationSubscriptionType", [notificationSubscriptionType]);
+AppboyPlugin.prototype.setPushNotificationSubscriptionType = function (notificationSubscriptionType, onSuccess, onFail) {
+	cordova.exec(onSuccess, onFail, "AppboyPlugin", "setPushNotificationSubscriptionType", [notificationSubscriptionType]);
 }
 
 /**
@@ -336,10 +336,10 @@ AppboyPlugin.prototype['Genders'] = {
 };
 
 AppboyPlugin.prototype['CardCategories'] = {
-  "ADVERTISING": 'advertising', 
-  "ANNOUNCEMENTS": 'announcements', 
-  "NEWS": 'news', 
-  "SOCIAL": 'social', 
+  "ADVERTISING": 'advertising',
+  "ANNOUNCEMENTS": 'announcements',
+  "NEWS": 'news',
+  "SOCIAL": 'social',
   "NO_CATEGORY": 'no_category',
   "ALL" : 'all'
 };

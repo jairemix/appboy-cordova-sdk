@@ -16,14 +16,14 @@
   self.APIKey = settings[@"com.appboy.api_key"];
   self.disableAutomaticPushRegistration = settings[@"com.appboy.ios_disable_automatic_push_registration"];
   self.disableAutomaticPushHandling = settings[@"com.appboy.ios_disable_automatic_push_handling"];
-  NSLog(@"[Appboy] self.disableAutomaticPushRegistration %@", self.disableAutomaticPushRegistration);
-  NSLog(@"[Appboy] self.disableAutomaticPushHandling %@", self.disableAutomaticPushHandling);
+  NSLog(@"[Jerem] self.disableAutomaticPushRegistration %@", self.disableAutomaticPushRegistration);
+  NSLog(@"[Jerem] self.disableAutomaticPushHandling %@", self.disableAutomaticPushHandling);
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
-    NSLog(@"[Appboy] did not disable automatic push handling");
+    NSLog(@"[Jerem] did not disable automatic push handling");
     [self setUpPushHandling];
   }
-  NSLog(@"[Appboy] end pluginInitialize");
+  NSLog(@"[Jerem] end pluginInitialize");
 }
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
@@ -34,18 +34,18 @@
         withAppboyOptions:nil];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
-    NSLog(@"[Appboy] did not disable automatic push registration");
+    NSLog(@"[Jerem] did not disable automatic push registration");
     [self setUpPushRegistration];
   }
 }
 
 - (void)setUpPushHandling {
-  NSLog(@"[Appboy] push handling set up");
+  NSLog(@"[Jerem] push handling set up");
   [AppDelegate swizzleHostAppDelegate];
 }
 
 - (void)setUpPushRegistration {
-  NSLog(@"[Appboy] push registration set up");
+  NSLog(@"[Jerem] push registration set up");
   UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
   if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_9_x_Max) {
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
@@ -72,7 +72,7 @@
 /*-------Appboy.h-------*/
 
 - (void)registerAppboyPushMessages:(CDVInvokedUrlCommand *)command {
-  // NSLog(@"[Appboy] register AppboyPushMessages DISABLED");
+  // NSLog(@"[Jerem] register AppboyPushMessages DISABLED");
   [self setUpPushHandling];
   [self setUpPushRegistration];
 }
@@ -168,7 +168,11 @@
 
 - (void) setPushNotificationSubscriptionType:(CDVInvokedUrlCommand *)command {
   NSString *subscriptionType = [command argumentAtIndex:0 withDefault:nil];
-  [[Appboy sharedInstance].user setPushNotificationSubscriptionType:[self getSubscriptionTypeFromString:subscriptionType]];
+  BOOL success = [[Appboy sharedInstance].user setPushNotificationSubscriptionType:[self getSubscriptionTypeFromString:subscriptionType]];
+  int cdvStatus = success ? CDVCommandStatus_OK : CDVCommandStatus_ERROR;
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:cdvStatus messageAsBool:success];
+  // [pluginResult setKeepCallbackAsBool:YES]; // here we tell Cordova not to cleanup the callback id after sendPluginResult()
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void) setEmailNotificationSubscriptionType:(CDVInvokedUrlCommand *)command {
