@@ -40,7 +40,6 @@ AppboyPlugin.prototype.changeUser = function (userId) {
 }
 
 /**
-* ** ANDROID ONLY**
 *
 * Registers the device as eligible to receive push notifications from Appboy.
 * Appboy will use the provided For GCM/ADM applications, this takes the GCM/ADM registration ID to send the device GCM/ADM messages.
@@ -49,9 +48,16 @@ AppboyPlugin.prototype.changeUser = function (userId) {
 *
 * @param {string} registrationId - The registration ID, or for apps integrating Baidu Cloud Push, the Baidu user id.
 */
-AppboyPlugin.prototype.registerAppboyPushMessages = function (gcmRegistrationID) {
-	cordova.exec(null, null, "AppboyPlugin", "registerAppboyPushMessages", [gcmRegistrationID]);
+AppboyPlugin.prototype.registerAppboyPushMessages = function () {
+	cordova.exec(null, null, "AppboyPlugin", "registerAppboyPushMessages", []);
 }
+
+/**
+* Android Only
+*/
+AppboyPlugin.prototype.unregisterAppboyPushMessages = function () {
+	cordova.exec(null, null, "AppboyPlugin", "unregisterAppboyPushMessages", []);
+};
 
 /**
  * Reports that the current user performed a custom named event.
